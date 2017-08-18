@@ -10,4 +10,4 @@ done
 
 # Run the service
 
-nameko run --config /service/config/config.yml rpc.payments
+nameko run --config /payments/config/config.yml rpc.payments
