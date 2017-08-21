@@ -4,7 +4,7 @@ ADD . /payments
 WORKDIR /payments
 RUN chmod +x /payments/run.sh
 
-RUN apt-get update && apt-get install -y \
+RUN apt-get update && apt-get install -y --no-install-recommends apt-utils \
   netcat
 
 RUN /bin/bash -c "pip3 install -r /payments/requirements/base.txt"
