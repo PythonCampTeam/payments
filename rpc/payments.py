@@ -8,7 +8,6 @@ Validator = cerberus.Validator
 v = Validator()
 
 
-
 class Payments(object):
 
     name = 'PaymentsRPC'
@@ -42,21 +41,6 @@ class Payments(object):
             "weight": weight,
             "mass_unit": "lb",
             }
-    # sk = stripe.SKU.retrieve("sku_BDPEtaqvwW7kgt")
-
-    # def parsel(self, pack):
-    #     parcel = {
-    #         "length": pack.get("length"),
-    #         "width": pack.get("width"),
-    #         "height": pack.get("height"),
-    #         "distance_unit": "in",
-    #         "weight": pack.get("weight"),
-    #         "mass_unit": "lb",
-    #     }
-    #     return parcel
-
-    # s.add_item('prod_BDQT7ifqt1FFc1', '2')
-    #  s.add_item('prod_BF2pHek9EyzO2S', '2')
 
     @rpc
     def add_in_cart(self, body):
