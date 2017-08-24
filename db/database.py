@@ -12,19 +12,23 @@ class ShoppingCart(object):
     def __init__(self, email_customer=None):
         self.items = {}
         self.db = []
-        # self.email_customer = email_customer
 
     def add_item(self, id_product, quantity):
         product = _get_sku(id_product)
-        self.items = {"parent": product, "quantity": quantity, "type": 'sku'}
-        self.db.append(self.items)
+        items = {"parent": product, "quantity": quantity, "type": 'sku'}
+        for item in self.db:
+            if item["parent"] == product:
+                    item["quantity"] += quantity
+                    return self.db
+        self.db.append(items)
+        return self.db
 
     def update_item(self, id_product, quantity):
         product = _get_sku(id_product)
         for item in self.db:
             if item["parent"] == product:
-                    item["quantity"] += quantity
-        return self.db
+                    item["quantity"] = quantity
+        # return {"error": "Product does not exist in cart"}
 
     def delete_item(self, id_product):
         product = _get_sku(id_product)

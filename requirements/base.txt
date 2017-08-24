@@ -19,3 +19,4 @@ urllib3==1.22
 Werkzeug==0.12.2
 wrapt==1.10.11
 stripe==1.62.0
+Cerberus==1.1

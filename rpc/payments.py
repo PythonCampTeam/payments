@@ -1,6 +1,12 @@
 from nameko.rpc import rpc
 import stripe
 from db.database import ShoppingCart
+import cerberus
+from rpc import validate
+
+Validator = cerberus.Validator
+v = Validator()
+
 
 
 class Payments(object):
@@ -53,22 +59,33 @@ class Payments(object):
     #  s.add_item('prod_BF2pHek9EyzO2S', '2')
 
     @rpc
-    def add_in_cart(self, id_product, quality):
+    def add_in_cart(self, body):
         """This method add new product in cart database
+
         Args:
+            body(dict) body request
             id_product(str) : id of product
             quality(str) : quality of product
+
+        Returs:
+            Object of cart
+
         """
-        Payments.cart.add_item(id_product, quality)
-        return Payments.cart.db
+        if not v.validate(body, validate.schema_add):
+            return v.errors
+        id_product = body.get('product_id')
+        quality = body.get('quality')
+        cart = self.cart.add_item(id_product, quality)
+        return cart
 
     @rpc
     def get_cart(self):
         """This method rerutn current cart
+
         Return:
             cart (list) current cart in db
         """
-        return Payments.cart.db
+        return self.cart.db
 
     @rpc
     def delete_item(self, id_product):
@@ -80,11 +97,11 @@ class Payments(object):
         Return:
             cart (list) current cart in db
         """
-        Payments.cart.delete_item(id_product)
-        Payments.get_cart()
+        self.cart.delete_item(id_product)
+        return self.get_cart()
 
     @rpc
-    def update_item(self, id_product, quality):
+    def update_item(self, body):
         """This method udtate product
         Args:
             id_product(str) : id of product
@@ -92,8 +109,12 @@ class Payments(object):
         Return:
             cart (list) current cart in db
         """
-        Payments.cart.update_item(id_product, quality)
-        Payments.get_cart()
+        if not v.validate(body, validate.schema_add):
+            return v.errors
+        id_product = body.get('product_id')
+        quality = body.get('quality')
+        self.cart.update_item(id_product, quality)
+        return self.cart.db
 
     @rpc
     def delete_cart(self):
@@ -101,20 +122,44 @@ class Payments(object):
         Return:
             cart (list) current cart in db
         """
-        Payments.cart.clear_cart()
-        Payments.get_cart()
+        self.cart.clear_cart()
+        return self.get_cart()
 
     @rpc
-    def new_order(self, mail, shipping):
-        order = stripe.Order.create(currency='usd',
-                                    items=Payments.cart.db,
-                                    shipping=shipping,
-                                    email=mail
-                                    )
-        return order
+    def new_order(self, body):
+        """Crated a order
+        Args:
+            body(dict) parameters for create a order
+            email(str) The email address of the customer
+            shipping(ditc) shipping address for the order
+            phone(str) phone of the customer
 
-    #  or_1As6NSBqraFdOKT2yQmMb5w0
-    #  0719ec510c29407f9bcea461ccdacf39
+        Returns:
+            result (dist) if the call succeeded
+        """
+        if not v.validate(body, validate.schema_order):
+            return {"errors": v.errors}
+        email = body.get('email')
+        phone = body.get('phone')
+        shipping = {
+                    "name": body.get('name'),
+                    "address": body.get('address'),
+                    "phone": phone
+                    }
+        try:
+            result = stripe.Order.create(
+                                        currency='usd',
+                                        items=self.cart.db,
+                                        shipping=shipping,
+                                        email=email
+                                        )
+        except stripe.error.InvalidRequestError as e:
+            body = e.json_body
+            err = body.get('error', {})
+            result = "Status is: {}, message is: {}".format(e.http_status,
+                                                            err.get('message'))
+        return {"email": email, "phone": phone, "response": result}
+
     @rpc
     def get_shipping(id_order):
         """Converts an address to from stripe object to
@@ -147,7 +192,7 @@ class Payments(object):
         return address_to
 
     @rpc
-    def select_shipping(self, order_id, shipping_id):
+    def select_shipping(self, body):
         """Change shipping in Order. Shipping should consist of methods.
         Args:
             order_id (str): uniq number of the product
@@ -155,11 +200,17 @@ class Payments(object):
         Return:
             order (dict): booking of customer
         """
+        order_id = body.get("order_id")
+        shipping_id = body.get("shipping_id")
         order = stripe.Order.retrieve(order_id)
         order.selected_shipping_method = shipping_id
+        order.save()
         return order
 
     @rpc
-    def pay_order(self, order, cart):
+    def pay_order(self, body):
+        order_id = body.get("order")
+        cart = body.get("cart")
+        order = stripe.Order.retrieve(order_id)
         charge = order.pay(source=cart)
         return charge
