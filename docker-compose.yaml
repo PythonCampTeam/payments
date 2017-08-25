@@ -22,7 +22,7 @@ services:
         - RABBIT_PORT=5672
         - RABBIT_MANAGEMENT_PORT=15672
         - SETTINGS_MODULE=payments
-        - PYTHONPATH=${PYTHONPATH}:/payments
+        - PYTHONPATH=:/payments
 networks:
   gateway_backend:
     external: true
