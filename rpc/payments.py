@@ -1,8 +1,10 @@
 from nameko.rpc import rpc
 import stripe
-from db.database import ShoppingCart
+#from db.database import ShoppingCart
+from payments.db.database import ShoppingCart
 import cerberus
-from rpc import validate
+#from rpc import validate
+from payments.rpc import validate
 
 Validator = cerberus.Validator
 v = Validator()
@@ -17,15 +19,12 @@ class Payments(object):
     @rpc
     def add_in_cart(self, id_product, quality):
         """This method add new product in cart database
-
         Args:
             body(dict) body request
             id_product(str) : id of product
             quality(str) : quality of product
-
         Returs:
             Object of cart
-
         """
         cart = self.cart.add_item(id_product, quality)
         return cart
@@ -33,7 +32,6 @@ class Payments(object):
     @rpc
     def get_cart(self):
         """This method rerutn current cart
-
         Return:
             cart (list) current cart in db
         """
@@ -81,7 +79,6 @@ class Payments(object):
             email(str) The email address of the customer
             shipping(ditc) shipping address for the order
             phone(str) phone of the customer
-
         Returns:
             result (dist) if the call succeeded
         """
