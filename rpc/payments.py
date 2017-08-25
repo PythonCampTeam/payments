@@ -14,36 +14,8 @@ class Payments(object):
     stripe.api_key = "sk_test_K5QUkUgvUNKvDD9fEGYBI6Gi"
     cart = ShoppingCart()
 
-    def get_package(self):
-        """This method return main packagedimensions
-        Args:
-            weight (int): weight of products
-            length (int): length of products
-            height (int): height of products
-            width (int): width of products
-
-        """
-        weight = 0
-        length = 0
-        height = 0
-        width = 0
-        for item in Payments.cart.db:
-            sk = stripe.SKU.retrieve(item['parent'])
-            weight += sk.package_dimensions.weight * int(item['quantity'])
-            length += sk.package_dimensions.length * int(item['quantity'])
-            height += sk.package_dimensions.height * int(item['quantity'])
-            width += sk.package_dimensions.width * int(item['quantity'])
-        return {
-            "length": length,
-            "width": width,
-            "height": height,
-            "distance_unit": "in",
-            "weight": weight,
-            "mass_unit": "lb",
-            }
-
     @rpc
-    def add_in_cart(self, body):
+    def add_in_cart(self, id_product, quality):
         """This method add new product in cart database
 
         Args:
@@ -55,10 +27,6 @@ class Payments(object):
             Object of cart
 
         """
-        if not v.validate(body, validate.schema_add):
-            return v.errors
-        id_product = body.get('product_id')
-        quality = body.get('quality')
         cart = self.cart.add_item(id_product, quality)
         return cart
 
@@ -85,7 +53,7 @@ class Payments(object):
         return self.get_cart()
 
     @rpc
-    def update_item(self, body):
+    def update_item(self, product_id, quality):
         """This method udtate product
         Args:
             id_product(str) : id of product
@@ -93,11 +61,7 @@ class Payments(object):
         Return:
             cart (list) current cart in db
         """
-        if not v.validate(body, validate.schema_add):
-            return v.errors
-        id_product = body.get('product_id')
-        quality = body.get('quality')
-        self.cart.update_item(id_product, quality)
+        self.cart.update_item(product_id, quality)
         return self.cart.db
 
     @rpc
@@ -125,11 +89,14 @@ class Payments(object):
             return {"errors": v.errors}
         email = body.get('email')
         phone = body.get('phone')
+        print(self.cart.db)
+
         shipping = {
                     "name": body.get('name'),
                     "address": body.get('address'),
                     "phone": phone
                     }
+        print(shipping)
         try:
             result = stripe.Order.create(
                                         currency='usd',
@@ -142,41 +109,16 @@ class Payments(object):
             err = body.get('error', {})
             result = "Status is: {}, message is: {}".format(e.http_status,
                                                             err.get('message'))
-        return {"email": email, "phone": phone, "response": result}
+        upstream_id = result.upstream_id
+        return {
+                "email": email,
+                "phone": phone,
+                "response": result,
+                "upstream_id": upstream_id
+                }
 
     @rpc
-    def get_shipping(id_order):
-        """Converts an address to from stripe object to
-        an address to from Shippo object
-        Args:
-            id_order (str): uniq number of specific
-        Return:
-            address_to (str): adress in Shippo schema
-        """
-        order = stripe.Order.retrieve(id_order)
-        addres = order.shipping.address
-        city = addres.get("city")
-        street1 = addres.get("line1")
-        street2 = addres.get("line2")
-        zip_code = addres.get("postal_code")
-        country = addres.get("country")
-        state = addres.get("state")
-        name = order.shipping.name
-        phone = order.shipping.phone
-        address_to = {
-            "name": name,
-            "street1": street1,
-            "street2": street2,
-            "city": city,
-            "state": state,
-            "zip": zip_code,
-            "country": country,
-            "phone": phone
-            }
-        return address_to
-
-    @rpc
-    def select_shipping(self, body):
+    def select_shipping(self, order_id, shipping_id):
         """Change shipping in Order. Shipping should consist of methods.
         Args:
             order_id (str): uniq number of the product
@@ -184,11 +126,16 @@ class Payments(object):
         Return:
             order (dict): booking of customer
         """
-        order_id = body.get("order_id")
-        shipping_id = body.get("shipping_id")
-        order = stripe.Order.retrieve(order_id)
-        order.selected_shipping_method = shipping_id
-        order.save()
+        try:
+            order = stripe.Order.retrieve(order_id)
+            order.selected_shipping_method = shipping_id
+            order.save()
+        except stripe.error.InvalidRequestError as e:
+            body = e.json_body
+            err = body.get('error', {})
+            result = "Status is: {}, message is: {}".format(e.http_status,
+                                                            err.get('message'))
+            return result
         return order
 
     @rpc

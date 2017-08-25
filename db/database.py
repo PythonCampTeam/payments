@@ -8,9 +8,10 @@ def _get_sku(id_product):
 
 
 class ShoppingCart(object):
-    """This class define a Cart"""
+    """This class define a Cart
+    Args:
+        db (list) list of all SKU for cart"""
     def __init__(self, email_customer=None):
-        self.items = {}
         self.db = []
 
     def add_item(self, id_product, quantity):
@@ -24,20 +25,19 @@ class ShoppingCart(object):
         return self.db
 
     def update_item(self, id_product, quantity):
+        """Update item in cart"""
         product = _get_sku(id_product)
         for item in self.db:
             if item["parent"] == product:
                     item["quantity"] = quantity
-        # return {"error": "Product does not exist in cart"}
 
     def delete_item(self, id_product):
+        """Delete item in cart"""
         product = _get_sku(id_product)
         for it in self.db:
             if it.get("parent") == product:
                 self.db.remove(it)
-                return "item delete"
 
     def clear_cart(self):
         """This method clear cart and items"""
         self.db = []
-        self.items = {}
