@@ -1,8 +1,8 @@
 import unittest
 from unittest import TestCase
+from unittest.mock import patch
+
 from payments.rpc.payments import Payments
-from payments.rpc.exception import handling
-from unittest.mock import patch, Mock
 
 
 class TestPayments(TestCase):
