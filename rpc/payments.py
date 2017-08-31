@@ -17,7 +17,7 @@ class Payments(object):
     cart = ShoppingCart()
 
     @rpc
-    def add_in_cart(self, id_product, quality):
+    def add_in_cart(self, sku, quality):
         """This method add new product in cart database
         Args:
             body(dict) body request
@@ -26,7 +26,7 @@ class Payments(object):
         Returs:
             Object of cart
         """
-        cart = self.cart.add_item(id_product, quality)
+        cart = self.cart.add_item(sku, quality)
         return cart
 
     @rpc
@@ -38,7 +38,7 @@ class Payments(object):
         return self.cart.db
 
     @rpc
-    def delete_item(self, id_product):
+    def delete_item(self, sku):
         """This method delete product from cart and
         return current cart
         Args:
@@ -47,11 +47,11 @@ class Payments(object):
         Return:
             cart (list) current cart in db
         """
-        self.cart.delete_item(id_product)
+        self.cart.delete_item(sku)
         return self.get_cart()
 
     @rpc
-    def update_item(self, product_id, quality):
+    def update_item(self, sku, quality):
         """This method udtate product
         Args:
             id_product(str) : id of product
@@ -59,7 +59,7 @@ class Payments(object):
         Return:
             cart (list) current cart in db
         """
-        self.cart.update_item(product_id, quality)
+        self.cart.update_item(sku, quality)
         return self.cart.db
 
     @rpc

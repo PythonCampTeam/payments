@@ -1,12 +1,3 @@
-# import uuid
-import stripe
-
-
-def _get_sku(id_product):
-    prod = stripe.Product.retrieve(id_product)
-    return prod.skus.data[0].id
-
-
 class ShoppingCart(object):
     """This class define a Cart
     Args:
@@ -14,28 +5,25 @@ class ShoppingCart(object):
     def __init__(self, email_customer=None):
         self.db = []
 
-    def add_item(self, id_product, quantity):
-        product = _get_sku(id_product)
-        items = {"parent": product, "quantity": quantity, "type": 'sku'}
+    def add_item(self, sku, quantity):
+        items = {"parent": sku, "quantity": quantity, "type": 'sku'}
         for item in self.db:
-            if item["parent"] == product:
+            if item["parent"] == sku:
                     item["quantity"] += quantity
                     return self.db
         self.db.append(items)
         return self.db
 
-    def update_item(self, id_product, quantity):
+    def update_item(self, sku, quantity):
         """Update item in cart"""
-        product = _get_sku(id_product)
         for item in self.db:
-            if item["parent"] == product:
+            if item["parent"] == sku:
                     item["quantity"] = quantity
 
-    def delete_item(self, id_product):
+    def delete_item(self, sku):
         """Delete item in cart"""
-        product = _get_sku(id_product)
         for it in self.db:
-            if it.get("parent") == product:
+            if it.get("parent") == sku:
                 self.db.remove(it)
 
     def clear_cart(self):
