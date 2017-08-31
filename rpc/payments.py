@@ -2,14 +2,9 @@ import cerberus
 import stripe
 from nameko.rpc import rpc
 
-try:
-    from db.database import ShoppingCart
-    from rpc import validate
-    from rpc.exception import handling
-except ImportError:
-    from payments.db.database import ShoppingCart
-    from payments.rpc import validate
-    from payments.rpc.exception import handling
+from payments.db.database import ShoppingCart
+from payments.rpc import validate
+from payments.rpc.exception import handling
 
 Validator = cerberus.Validator
 v = Validator()
