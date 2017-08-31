@@ -87,7 +87,6 @@ class Payments(object):
         error_message = None
         email = body.get('email')
         phone = body.get('phone')
-        print(self.cart.db)
 
         shipping = {
                     "name": body.get('name'),
@@ -124,10 +123,10 @@ class Payments(object):
         try:
             order = stripe.Order.retrieve(order_id)
             order.selected_shipping_method = shipping_id
-            order.save()
+            result = stripe.Order.save(order)
         except stripe.error.InvalidRequestError as e:
-            return handling(e)
-        return order
+            return {"errors": handling(e)}
+        return result
 
     @rpc
     def pay_order(self, order_id, cart):
@@ -142,7 +141,7 @@ class Payments(object):
         """
         try:
             order = stripe.Order.retrieve(order_id)
-            charge = order.pay(source=cart)
+            charge = stripe.Order.pay(order, source=cart)
         except stripe.error.InvalidRequestError as e:
             return {"errors": handling(e)}
         return charge
