@@ -87,6 +87,7 @@ class Payments(object):
         """
         if not v.validate(body, validate.schema_order):
             return {"errors": v.errors}
+        error_message = None
         email = body.get('email')
         phone = body.get('phone')
         print(self.cart.db)
@@ -107,14 +108,15 @@ class Payments(object):
         except stripe.error.InvalidRequestError as e:
             body = e.json_body
             err = body.get('error', {})
-            result = "Status is: {}, message is: {}".format(e.http_status,
+            error_message = "Status is: {}, message is: {}".format(e.http_status,
                                                             err.get('message'))
-        upstream_id = result.upstream_id
+            result = {}
         return {
                 "email": email,
                 "phone": phone,
                 "response": result,
-                "upstream_id": upstream_id
+
+                "errors": error_message
                 }
 
     @rpc
