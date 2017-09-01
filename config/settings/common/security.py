@@ -11,3 +11,5 @@ SENDGRID_API_KEY = ['S', 'G', '.', '7', 't', 'T', 'u', '7', 'e', 'C', '5', 'Q',
                      'C', 'd', 'a', '-', 'N', 'S', 'Q']
 body_type = "text/html"
 body_mail = "<html><body>{}</body></html>"
+
+key = "sk_test_K5QUkUgvUNKvDD9fEGYBI6Gi"

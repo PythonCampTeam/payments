@@ -2,6 +2,7 @@ import cerberus
 import stripe
 from nameko.rpc import rpc
 
+from payments.config.settings.common.security import key
 from payments.db.database import ShoppingCart
 from payments.rpc import validate
 from payments.rpc.exception import handling
@@ -13,7 +14,7 @@ v = Validator()
 class Payments(object):
 
     name = 'PaymentsRPC'
-    stripe.api_key = "sk_test_K5QUkUgvUNKvDD9fEGYBI6Gi"
+    stripe.api_key = key
     cart = ShoppingCart()
 
     @rpc
