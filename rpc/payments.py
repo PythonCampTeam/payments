@@ -2,6 +2,7 @@ import cerberus
 import stripe
 from nameko.rpc import rpc
 
+from payments.config.settings.common.security import key
 from payments.db.database import ShoppingCart
 from payments.rpc import validate
 from payments.rpc.exception import handling
@@ -13,7 +14,7 @@ v = Validator()
 class Payments(object):
 
     name = 'PaymentsRPC'
-    stripe.api_key = "sk_test_K5QUkUgvUNKvDD9fEGYBI6Gi"
+    stripe.api_key = key
     cart = ShoppingCart()
 
     @rpc
@@ -90,10 +91,8 @@ class Payments(object):
 
         shipping = {
                     "name": body.get('name'),
-                    "address": body.get('address'),
-
+                    "address": body.get('address')
                     }
-        print(shipping)
         try:
             result = stripe.Order.create(
                                         currency='usd',
@@ -101,9 +100,11 @@ class Payments(object):
                                         shipping=shipping,
                                         email=email
                                         )
+
         except stripe.error.InvalidRequestError as e:
             error_message = handling(e)
             result = None
+
         return {
                 "email": email,
                 "phone": phone,
@@ -134,10 +135,8 @@ class Payments(object):
         Args:
             order_id (str): id of new order
             cart (str): token of cart
-
         Return:
             charge : Order with status 'paid', stripe's object
-
         """
         try:
             order = stripe.Order.retrieve(order_id)
