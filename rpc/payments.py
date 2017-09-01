@@ -87,12 +87,11 @@ class Payments(object):
         error_message = None
         email = body.get('email')
         phone = body.get('phone')
-        name = body.get('name')
 
         shipping = {
                     "name": body.get('name'),
                     "address": body.get('address'),
-                    "phone": phone
+
                     }
         print(shipping)
         try:
@@ -109,8 +108,7 @@ class Payments(object):
                 "email": email,
                 "phone": phone,
                 "response": result,
-                "errors": error_message,
-                "name": name
+                "errors": error_message
                 }
 
     @rpc
