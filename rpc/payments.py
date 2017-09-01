@@ -87,14 +87,11 @@ class Payments(object):
         error_message = None
         email = body.get('email')
         phone = body.get('phone')
-        name = body.get('name')
 
         shipping = {
                     "name": body.get('name'),
-                    "address": body.get('address'),
-                    "phone": phone
+                    "address": body.get('address')
                     }
-        print(shipping)
         try:
             result = stripe.Order.create(
                                         currency='usd',
@@ -102,15 +99,16 @@ class Payments(object):
                                         shipping=shipping,
                                         email=email
                                         )
+
         except stripe.error.InvalidRequestError as e:
             error_message = handling(e)
             result = None
+
         return {
                 "email": email,
                 "phone": phone,
                 "response": result,
-                "errors": error_message,
-                "name": name
+                "errors": error_message
                 }
 
     @rpc
