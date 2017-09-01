@@ -86,9 +86,6 @@ class Payments(object):
         if not v.validate(body, validate.schema_order):
             return {"errors": v.errors}
         error_message = None
-        email = body.get('email')
-        phone = body.get('phone')
-
         shipping = {
                     "name": body.get('name'),
                     "address": body.get('address')
@@ -98,7 +95,7 @@ class Payments(object):
                                         currency='usd',
                                         items=self.cart.db,
                                         shipping=shipping,
-                                        email=email
+                                        email=body.get('email')
                                         )
 
         except stripe.error.InvalidRequestError as e:
@@ -106,10 +103,11 @@ class Payments(object):
             result = None
 
         return {
-                "email": email,
-                "phone": phone,
+                "email": body.get('email'),
+                "phone": body.get('phone'),
                 "response": result,
-                "errors": error_message
+                "errors": error_message,
+                "name": body.get('name')
                 }
 
     @rpc
