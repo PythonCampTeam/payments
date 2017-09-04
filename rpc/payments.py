@@ -133,10 +133,8 @@ class Payments(object):
         Args:
             order_id (str): id of new order
             cart (str): token of cart
-
         Return:
             charge : Order with status 'paid', stripe's object
-
         """
         try:
             order = stripe.Order.retrieve(order_id)
