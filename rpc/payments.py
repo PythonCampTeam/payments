@@ -4,9 +4,7 @@ from nameko.rpc import rpc
 
 from payments.config.settings.common.security import key
 from payments.db.database import ShoppingCart
-from payments.rpc import validate
 from payments.rpc.exception import handling
-
 Validator = cerberus.Validator
 v = Validator()
 
@@ -83,32 +81,24 @@ class Payments(object):
         Returns:
             result (dist) if the call succeeded
         """
-        if not v.validate(body, validate.schema_order):
-            return {"errors": v.errors}
-        error_message = None
+
         shipping = {
                     "name": body.get('name'),
+                    "phone": body.get('phone'),
                     "address": body.get('address')
                     }
         try:
-            result = stripe.Order.create(
-                                        currency='usd',
-                                        items=self.cart.db,
-                                        shipping=shipping,
-                                        email=body.get('email')
-                                        )
+            new_order = stripe.Order.create(
+                currency='usd',
+                items=self.cart.db,
+                shipping=shipping,
+                email=body.get('email')
+            )
 
         except stripe.error.InvalidRequestError as e:
-            error_message = handling(e)
-            result = None
+            return handling(e)
 
-        return {
-                "email": body.get('email'),
-                "phone": body.get('phone'),
-                "response": result,
-                "errors": error_message,
-                "name": body.get('name')
-                }
+        return new_order
 
     @rpc
     def select_shipping(self, order_id, shipping_id):
@@ -124,7 +114,7 @@ class Payments(object):
             order.selected_shipping_method = shipping_id
             result = stripe.Order.save(order)
         except stripe.error.InvalidRequestError as e:
-            return {"errors": handling(e)}
+            return handling(e)
         return result
 
     @rpc
@@ -141,4 +131,5 @@ class Payments(object):
             charge = stripe.Order.pay(order, source=cart)
         except stripe.error.InvalidRequestError as e:
             return {"errors": handling(e)}
+        self.cart.clear_cart()
         return charge
