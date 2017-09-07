@@ -130,6 +130,6 @@ class Payments(object):
             order = stripe.Order.retrieve(order_id)
             charge = stripe.Order.pay(order, source=cart)
         except stripe.error.InvalidRequestError as e:
-            return {"errors": handling(e)}
+            raise Exception(handling(e))
         self.cart.clear_cart()
         return charge
